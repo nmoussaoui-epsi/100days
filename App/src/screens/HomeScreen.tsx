@@ -1,11 +1,20 @@
 import React from "react";
-import { View, Text, StyleSheet, FlatList } from "react-native";
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  Image,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import CalendarHeader from "../components/CalendarHeader";
 import SessionList from "../components/SessionList";
 
-const HomeScreen = () => {
-  const userName = "John"; // Remplacez par le nom de l'utilisateur
+import { NavigationProp } from "@react-navigation/native";
+
+const HomeScreen = ({ navigation }: { navigation: NavigationProp<any> }) => {
+  const userName = "Nassim";
 
   const sections = [
     { id: "1", type: "header" },
@@ -19,7 +28,17 @@ const HomeScreen = () => {
       case "header":
         return (
           <View style={styles.header}>
-            <Text style={styles.welcomeText}>Hi, {userName}</Text>
+            <View style={styles.headerRow}>
+              <Text style={styles.welcomeText}>Hi, {userName} !</Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate("SettingsScreen")}
+              >
+                <Image
+                  source={require("../../assets/icons/settings.png")}
+                  style={styles.settingsIcon}
+                />
+              </TouchableOpacity>
+            </View>
             <CalendarHeader />
           </View>
         );
@@ -53,10 +72,19 @@ const styles = StyleSheet.create({
   header: {
     padding: 20,
   },
+  headerRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   welcomeText: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 10,
+  },
+  settingsIcon: {
+    width: 24,
+    height: 24,
+    tintColor: "#000", // Changez la couleur si nécessaire
   },
   timeline: {
     height: 2,
