@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "../firebaseConfig";
+import { auth, db } from "../firebaseConfig";
+import { getDoc, doc } from "firebase/firestore";
 
 const LoginScreen = ({ navigation }: { navigation: any }) => {
   const [email, setEmail] = useState("");
@@ -9,12 +10,21 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
 
   const handleLogin = async () => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        console.log("Nom d'utilisateur connecté:", userDoc.data().firstName);
+      } else {
+        console.log("Aucun document utilisateur trouvé !");
+      }
+
       Alert.alert("Succès", "Connexion réussie !");
       navigation.navigate("Home");
     } catch (error) {
       console.error("Erreur lors de la connexion", error);
-      Alert.alert("Erreur", "Impossible de se connecter. Vérifiez vos identifiants.");
+      Alert.alert("Erreur", "Impossible de se connecter.");
     }
   };
 
