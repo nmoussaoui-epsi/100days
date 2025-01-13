@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import { Text, TextInput, TouchableOpacity, StyleSheet, Alert, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth, db } from "../firebaseConfig";
-import { getDoc, doc } from "firebase/firestore";
+import { auth } from "../firebaseConfig";
+import { CommonActions } from "@react-navigation/native";
 
 const LoginScreen = ({ navigation }: { navigation: any }) => {
   const [email, setEmail] = useState("");
@@ -14,7 +14,12 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
       const user = userCredential.user;
 
       Alert.alert("Succès", "Connexion réussie !");
-      navigation.navigate("Home");
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{ name: "Home" }],
+        })
+      );
     } catch (error) {
       console.error("Erreur lors de la connexion", error);
       Alert.alert("Erreur", "Impossible de se connecter.");

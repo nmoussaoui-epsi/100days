@@ -11,8 +11,8 @@ const Stack = createStackNavigator();
 const AppNavigator = () => {
   return (
     <Stack.Navigator>
-      <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="SignUpScreen" component={SignUpScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="LoginScreen" component={LoginScreen} options={{ headerShown: false, gestureEnabled: false }} />
+      <Stack.Screen name="SignUpScreen" component={SignUpScreen} options={{ headerShown: false, gestureEnabled: false }} />
       <Stack.Screen name="Home" component={BottomTabNavigator} options={{ headerShown: false, headerTitle: "" }} />
       <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{ headerShown: true, title: "Settings" }} />
       <Stack.Screen
