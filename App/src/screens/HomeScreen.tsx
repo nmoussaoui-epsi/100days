@@ -4,20 +4,37 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
 import { subscribeToChallenges, deleteChallenge } from "../services/challengeService";
 import CalendarHeader from "../components/CalendarHeader";
+import { auth, db } from "../firebaseConfig";
+import { doc, getDoc } from "firebase/firestore";
 
 const HomeScreen = ({ navigation }: { navigation: any }) => {
-  const userName = "Nassim";
+  const [username, setUsername] = useState("Utilisateur");
   const [challenges, setChallenges] = useState<any[]>([]);
 
-  // Récupération en temps réel des défis
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+          setUsername(userDoc.data().username);
+        }
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   useFocusEffect(
     React.useCallback(() => {
-      const unsubscribe = subscribeToChallenges(setChallenges);
+      const unsubscribe = subscribeToChallenges((challenges) => {
+        const userChallenges = challenges.filter((challenge) => challenge.userId === auth.currentUser?.uid);
+        setChallenges(userChallenges);
+      });
       return () => unsubscribe();
     }, [])
   );
 
-  // Fonction pour supprimer un défi
   const handleDeleteChallenge = async (id: string) => {
     try {
       await deleteChallenge(id);
@@ -46,7 +63,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>Hi, {userName}!</Text>
+        <Text style={styles.welcomeText}>Hi, {username}!</Text>
         <TouchableOpacity onPress={() => navigation.navigate("SettingsScreen")}>
           <Image source={require("../../assets/icons/settings.png")} style={styles.settingsIcon} />
         </TouchableOpacity>
