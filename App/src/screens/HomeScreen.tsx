@@ -8,7 +8,7 @@ import { auth, db } from "../firebaseConfig";
 import { doc, getDoc } from "firebase/firestore";
 
 const HomeScreen = ({ navigation }: { navigation: any }) => {
-  const [firstName, setFirstName] = useState("Utilisateur");
+  const [username, setUsername] = useState("Utilisateur");
   const [challenges, setChallenges] = useState<any[]>([]);
 
   useEffect(() => {
@@ -17,7 +17,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
       if (user) {
         const userDoc = await getDoc(doc(db, "users", user.uid));
         if (userDoc.exists()) {
-          setFirstName(userDoc.data().firstName);
+          setUsername(userDoc.data().username);
         }
       }
     };
@@ -63,7 +63,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>Hi, {firstName}!</Text>
+        <Text style={styles.welcomeText}>Hi, {username}!</Text>
         <TouchableOpacity onPress={() => navigation.navigate("SettingsScreen")}>
           <Image source={require("../../assets/icons/settings.png")} style={styles.settingsIcon} />
         </TouchableOpacity>

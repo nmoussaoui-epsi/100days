@@ -13,13 +13,6 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      if (userDoc.exists()) {
-        console.log("Nom d'utilisateur connecté:", userDoc.data().firstName);
-      } else {
-        console.log("Aucun document utilisateur trouvé !");
-      }
-
       Alert.alert("Succès", "Connexion réussie !");
       navigation.navigate("Home");
     } catch (error) {
@@ -32,16 +25,19 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
     <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === "ios" ? "padding" : undefined}>
       <ScrollView contentContainerStyle={styles.scrollView}>
         <Text style={styles.title}>Connexion</Text>
-
-        <TextInput style={styles.input} placeholder="Email" value={email} onChangeText={setEmail} keyboardType="email-address" />
-        <TextInput style={styles.input} placeholder="Mot de passe" value={password} onChangeText={setPassword} secureTextEntry />
-
+        <TextInput style={styles.input} value={email} onChangeText={setEmail} placeholder="Entrez votre email" />
+        <TextInput
+          style={styles.input}
+          value={password}
+          onChangeText={setPassword}
+          placeholder="Entrez votre mot de passe"
+          secureTextEntry
+        />
         <TouchableOpacity style={styles.button} onPress={handleLogin}>
           <Text style={styles.buttonText}>Se connecter</Text>
         </TouchableOpacity>
-
-        <TouchableOpacity onPress={() => navigation.navigate("SignUpScreen")} style={styles.linkContainer}>
-          <Text style={styles.link}>Pas encore de compte ? Inscrivez-vous</Text>
+        <TouchableOpacity style={styles.linkContainer} onPress={() => navigation.navigate("SignUpScreen")}>
+          <Text style={styles.link}>S'inscrire</Text>
         </TouchableOpacity>
       </ScrollView>
     </KeyboardAvoidingView>
