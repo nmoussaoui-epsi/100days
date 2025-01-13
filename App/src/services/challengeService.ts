@@ -1,9 +1,14 @@
-import { db } from "../firebaseConfig";
+import { db, auth } from "../firebaseConfig";
 import { collection, addDoc, deleteDoc, doc, onSnapshot } from "firebase/firestore";
 
 export const createChallenge = async (challenge: any) => {
   try {
-    await addDoc(collection(db, "challenges"), challenge);
+    const user = auth.currentUser;
+    if (user) {
+      await addDoc(collection(db, "challenges"), { ...challenge, userId: user.uid });
+    } else {
+      throw new Error("Utilisateur non connecté");
+    }
   } catch (error) {
     console.error("Error creating challenge:", error);
   }
