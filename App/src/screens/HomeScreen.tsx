@@ -63,7 +63,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>Hi, {username}!</Text>
+        <Text style={styles.welcomeText}>Salut {username}!</Text>
         <TouchableOpacity onPress={() => navigation.navigate("SettingsScreen")}>
           <Image source={require("../../assets/icons/settings.png")} style={styles.settingsIcon} />
         </TouchableOpacity>
