@@ -1,35 +1,33 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { NavigationProp, useNavigation } from "@react-navigation/native";
 import HomeScreen from "../screens/HomeScreen";
 import ChallengeScreen from "../screens/ChallengeScreen";
 import AddScreen from "../screens/AddScreen";
 import StatsScreen from "../screens/StatsScreen";
 import DiscoverScreen from "../screens/DiscoverScreen";
 import { Image, View, StyleSheet, TouchableOpacity } from "react-native";
+import { RootStackParamList } from "../navigation/types";
 
-const Tab = createBottomTabNavigator();
+const Tab = createBottomTabNavigator<RootStackParamList>();
 
-interface CustomTabBarButtonProps {
-  children: React.ReactNode;
-  onPress: () => void;
-}
+const CustomTabBarButton: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
 
-const CustomTabBarButton: React.FC<CustomTabBarButtonProps> = ({
-  children,
-  onPress,
-}) => (
-  <TouchableOpacity
-    style={{
-      top: -30,
-      justifyContent: "center",
-      alignItems: "center",
-      ...styles.shadow,
-    }}
-    onPress={onPress}
-  >
-    <View style={styles.floatingButton}>{children}</View>
-  </TouchableOpacity>
-);
+  return (
+    <TouchableOpacity
+      style={{
+        top: -30,
+        justifyContent: "center",
+        alignItems: "center",
+        ...styles.shadow,
+      }}
+      onPress={() => navigation.navigate("CreateChallengeScreen")}
+    >
+      <View style={styles.floatingButton}>{children}</View>
+    </TouchableOpacity>
+  );
+};
 
 const BottomTabNavigator = () => {
   return (
@@ -48,12 +46,7 @@ const BottomTabNavigator = () => {
             iconName = require("../../assets/icons/discover.png");
           }
 
-          return (
-            <Image
-              source={iconName}
-              style={{ width: size, height: size, tintColor: color }}
-            />
-          );
+          return <Image source={iconName} style={{ width: size, height: size, tintColor: color }} />;
         },
         tabBarActiveTintColor: "#007bff",
         tabBarInactiveTintColor: "gray",
@@ -61,41 +54,20 @@ const BottomTabNavigator = () => {
         tabBarStyle: styles.tabBar,
       })}
     >
-      <Tab.Screen
-        name="Home"
-        component={HomeScreen}
-        options={{ headerShown: false }}
-      />
-      <Tab.Screen
-        name="Challenge"
-        component={ChallengeScreen}
-        options={{ headerShown: false }}
-      />
+      <Tab.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Challenge" component={ChallengeScreen} options={{ headerShown: false }} />
       <Tab.Screen
         name="Add"
         component={AddScreen}
         options={{
-          tabBarButton: (props) => (
-            <CustomTabBarButton {...props} onPress={() => {}} />
-          ),
+          tabBarButton: (props) => <CustomTabBarButton {...props} />,
           tabBarIcon: ({ color, size }) => (
-            <Image
-              source={require("../../assets/icons/add.png")}
-              style={{ width: size, height: size, tintColor: "#fff" }}
-            />
+            <Image source={require("../../assets/icons/add.png")} style={{ width: size, height: size, tintColor: "#fff" }} />
           ),
         }}
       />
-      <Tab.Screen
-        name="Stats"
-        component={StatsScreen}
-        options={{ headerShown: false }}
-      />
-      <Tab.Screen
-        name="Discover"
-        component={DiscoverScreen}
-        options={{ headerShown: false }}
-      />
+      <Tab.Screen name="Stats" component={StatsScreen} options={{ headerShown: false }} />
+      <Tab.Screen name="Discover" component={DiscoverScreen} options={{ headerShown: false }} />
     </Tab.Navigator>
   );
 };

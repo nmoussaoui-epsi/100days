@@ -1,42 +1,32 @@
-import React from "react";
-import { View, Text, FlatList, StyleSheet } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, Alert } from "react-native";
+import { subscribeToChallenges, deleteChallenge } from "../services/challengeService";
 
-const tasks = [
-  {
-    id: "1",
-    name: "Fitness",
-    status: "Ongoing",
-    emoji: "💪",
-    description: "Cardio, Pull Ups, Leg",
-  },
-  {
-    id: "2",
-    name: "Meditation",
-    status: "Completed",
-    emoji: "🧘",
-    description: "Morning Meditation",
-  },
-  {
-    id: "3",
-    name: "Productivity",
-    status: "Ongoing",
-    emoji: "💼",
-    description: "Work on project",
-  },
-];
+const SessionList = ({ session }: { session: string }) => {
+  const [challenges, setChallenges] = useState<any[]>([]);
 
-interface SessionListProps {
-  session: string;
-}
+  useEffect(() => {
+    const unsubscribe = subscribeToChallenges(setChallenges);
+    return () => unsubscribe();
+  }, []);
 
-const SessionList: React.FC<SessionListProps> = ({ session }) => {
+  const handleDeleteChallenge = async (id: string) => {
+    try {
+      await deleteChallenge(id);
+      Alert.alert("Succès", "Défi supprimé avec succès !");
+    } catch (error) {
+      console.error("Erreur lors de la suppression du défi :", error);
+      Alert.alert("Erreur", "Impossible de supprimer le défi.");
+    }
+  };
+
   return (
     <View style={styles.container}>
       <Text style={styles.sessionTitle}>
-        {session} Session ({tasks.length})
+        {session} Session ({challenges.length})
       </Text>
       <FlatList
-        data={tasks}
+        data={challenges}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <View style={styles.taskItem}>
@@ -44,12 +34,12 @@ const SessionList: React.FC<SessionListProps> = ({ session }) => {
               <Text style={styles.emoji}>{item.emoji}</Text>
             </View>
             <View style={styles.taskDetails}>
-              <Text style={styles.taskName}>{item.name}</Text>
+              <Text style={styles.taskName}>{item.title}</Text>
               <Text style={styles.taskDescription}>{item.description}</Text>
             </View>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>{item.status}</Text>
-            </View>
+            <TouchableOpacity onPress={() => handleDeleteChallenge(item.id)}>
+              <Image source={require("../../assets/icons/trash.png")} style={styles.deleteIcon} />
+            </TouchableOpacity>
           </View>
         )}
       />
@@ -99,15 +89,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#666",
   },
-  statusBadge: {
-    backgroundColor: "#000",
-    borderRadius: 10,
-    paddingVertical: 2,
-    paddingHorizontal: 8,
-  },
-  statusText: {
-    color: "#fff",
-    fontSize: 12,
+  deleteIcon: {
+    width: 24,
+    height: 24,
+    tintColor: "#ff0000",
   },
 });
 
