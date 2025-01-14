@@ -1,48 +1,33 @@
-import React, { useState, useRef, useEffect } from "react";
-import { View, Text, TouchableOpacity, StyleSheet, FlatList } from "react-native";
-import { format, addDays, subDays, isToday, isYesterday } from "date-fns";
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, FlatList, Image } from "react-native";
+import { format, addDays, subDays, isToday, isYesterday, startOfWeek } from "date-fns";
 import { fr } from "date-fns/locale";
 
 const ITEM_WIDTH = 50;
 
-const CalendarHeader = () => {
+const CalendarHeader = forwardRef(({ onDateChange }: { onDateChange: (date: string) => void }, ref) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [dates, setDates] = useState(generateInitialDates());
-  const [showTodayButton, setShowTodayButton] = useState(false);
+  const [dates, setDates] = useState(generateWeekDates(new Date()));
   const flatListRef = useRef<FlatList>(null);
 
-  function generateInitialDates() {
-    const today = new Date();
-    const start = subDays(today, 30);
-    return Array.from({ length: 60 }, (_, i) => addDays(start, i));
+  function generateWeekDates(date: Date) {
+    const start = startOfWeek(date, { weekStartsOn: 1 }); // Start week on Monday
+    return Array.from({ length: 7 }, (_, i) => addDays(start, i));
   }
 
   const handleDayPress = (date: Date) => {
     setSelectedDate(date);
-    setShowTodayButton(!isToday(date));
+    onDateChange(formatDate(date));
   };
 
-  const handleScroll = (event: any) => {
-    const offsetX = event.nativeEvent.contentOffset.x;
-    const index = Math.floor(offsetX / ITEM_WIDTH);
-
-    if (index < 10) {
-      prependDates();
-    } else if (index > dates.length - 10) {
-      appendDates();
-    }
+  const handlePrevWeek = () => {
+    const newStartDate = subDays(dates[0], 7);
+    setDates(generateWeekDates(newStartDate));
   };
 
-  const prependDates = () => {
-    const firstDate = dates[0];
-    const newDates = Array.from({ length: 30 }, (_, i) => subDays(firstDate, i + 1)).reverse();
-    setDates([...newDates, ...dates]);
-  };
-
-  const appendDates = () => {
-    const lastDate = dates[dates.length - 1];
-    const newDates = Array.from({ length: 30 }, (_, i) => addDays(lastDate, i + 1));
-    setDates([...dates, ...newDates]);
+  const handleNextWeek = () => {
+    const newStartDate = addDays(dates[0], 7);
+    setDates(generateWeekDates(newStartDate));
   };
 
   const formatDate = (date: Date) => {
@@ -56,36 +41,50 @@ const CalendarHeader = () => {
   };
 
   const formatDay = (date: Date) => {
-    return format(date, "EEE", { locale: fr });
+    return format(date, "EE", { locale: fr }).toUpperCase();
   };
 
   const formatDayNumber = (date: Date) => {
     return format(date, "d", { locale: fr });
   };
 
-  const scrollToToday = () => {
-    const todayIndex = dates.findIndex((date) => isToday(date));
-    if (todayIndex !== -1 && flatListRef.current) {
-      flatListRef.current.scrollToIndex({ index: todayIndex, animated: true });
-      setSelectedDate(new Date());
-      setShowTodayButton(false);
-    }
-  };
+  useImperativeHandle(ref, () => ({
+    scrollToToday: () => {
+      const today = new Date();
+      const todayStartOfWeek = startOfWeek(today, { weekStartsOn: 1 });
+      const currentStartOfWeek = startOfWeek(dates[0], { weekStartsOn: 1 });
+
+      if (todayStartOfWeek.getTime() !== currentStartOfWeek.getTime()) {
+        const newDates = generateWeekDates(today);
+        setDates(newDates);
+        setTimeout(() => {
+          const todayIndex = newDates.findIndex((date) => isToday(date));
+          if (todayIndex !== -1 && flatListRef.current) {
+            flatListRef.current.scrollToIndex({ index: todayIndex, animated: true });
+            setSelectedDate(today);
+            onDateChange(formatDate(today));
+          }
+        }, 0);
+      } else {
+        const todayIndex = dates.findIndex((date) => isToday(date));
+        if (todayIndex !== -1 && flatListRef.current) {
+          flatListRef.current.scrollToIndex({ index: todayIndex, animated: true });
+          setSelectedDate(today);
+          onDateChange(formatDate(today));
+        }
+      }
+    },
+  }));
 
   useEffect(() => {
-    if (flatListRef.current) {
-      flatListRef.current.scrollToIndex({ index: 30, animated: false });
-    }
-  }, [dates]);
+    onDateChange(formatDate(new Date()));
+  }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.fullDateText}>{formatDate(selectedDate)}</Text>
-      {showTodayButton && (
-        <TouchableOpacity onPress={scrollToToday} style={styles.todayButton}>
-          <Text style={styles.todayButtonText}>Revenir à aujourd'hui</Text>
-        </TouchableOpacity>
-      )}
+      <TouchableOpacity onPress={handlePrevWeek}>
+        <Image source={require("../../assets/icons/arrow-left.png")} style={styles.navIcon} />
+      </TouchableOpacity>
       <FlatList
         ref={flatListRef}
         data={dates}
@@ -105,8 +104,6 @@ const CalendarHeader = () => {
           </TouchableOpacity>
         )}
         showsHorizontalScrollIndicator={false}
-        onScroll={handleScroll}
-        scrollEventThrottle={16}
         getItemLayout={(data, index) => ({ length: ITEM_WIDTH, offset: ITEM_WIDTH * index, index })}
         onScrollToIndexFailed={(info) => {
           const wait = new Promise((resolve) => setTimeout(resolve, 500));
@@ -115,48 +112,43 @@ const CalendarHeader = () => {
           });
         }}
       />
+      <TouchableOpacity onPress={handleNextWeek}>
+        <Image source={require("../../assets/icons/arrow-right.png")} style={styles.navIcon} />
+      </TouchableOpacity>
     </View>
   );
-};
+});
 
 const styles = StyleSheet.create({
   container: {
+    flexDirection: "row",
     alignItems: "center",
-    marginVertical: 10,
+    marginVertical: 15,
   },
-  fullDateText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    marginBottom: 5,
-  },
-  todayButton: {
-    marginBottom: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
-    backgroundColor: "#007bff",
-    borderRadius: 15,
-  },
-  todayButtonText: {
-    color: "#fff",
-    fontSize: 12,
+  navIcon: {
+    width: 24,
+    height: 24,
+    tintColor: "#007bff",
   },
   dayItem: {
-    paddingVertical: 5,
+    width: ITEM_WIDTH,
     paddingHorizontal: 10,
-    borderRadius: 15,
-    backgroundColor: "#f0f0f0",
+    paddingVertical: 5,
+    borderRadius: 25,
     marginHorizontal: 2,
     alignItems: "center",
   },
   selectedDayItem: {
-    backgroundColor: "#007bff",
+    backgroundColor: "#f3f2f1",
+    borderColor: "#f3f2f1",
   },
   dayText: {
-    fontSize: 14,
-    color: "#000",
+    fontSize: 10,
+    color: "#333",
+    paddingVertical: 8,
   },
   selectedDayText: {
-    color: "#fff",
+    color: "#000",
     fontWeight: "bold",
   },
 });

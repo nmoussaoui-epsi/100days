@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { View, Text, FlatList, StyleSheet, TouchableOpacity, Image, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useFocusEffect } from "@react-navigation/native";
@@ -10,6 +10,8 @@ import { doc, getDoc } from "firebase/firestore";
 const HomeScreen = ({ navigation }: { navigation: any }) => {
   const [username, setUsername] = useState("Utilisateur");
   const [challenges, setChallenges] = useState<any[]>([]);
+  const [selectedDate, setSelectedDate] = useState("Aujourd'hui");
+  const calendarHeaderRef = useRef<{ scrollToToday: () => void }>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -60,15 +62,26 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
     </View>
   );
 
+  const handleHeaderTitlePress = () => {
+    if (calendarHeaderRef.current) {
+      calendarHeaderRef.current.scrollToToday();
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <Text style={styles.welcomeText}>Salut {username}!</Text>
+        <TouchableOpacity onPress={() => navigation.openDrawer()}>
+          <Image source={require("../../assets/icons/hamburger.png")} style={styles.menuIcon} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={handleHeaderTitlePress}>
+          <Text style={styles.headerTitle}>{selectedDate}</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={() => navigation.navigate("SettingsScreen")}>
           <Image source={require("../../assets/icons/settings.png")} style={styles.settingsIcon} />
         </TouchableOpacity>
       </View>
-      <CalendarHeader />
+      <CalendarHeader ref={calendarHeaderRef} onDateChange={setSelectedDate} />
       <Text style={styles.sectionTitle}>Ongoing Challenges</Text>
       <FlatList data={challenges.filter((item) => !item.completed)} keyExtractor={(item) => item.id} renderItem={renderChallengeItem} />
       <Text style={styles.sectionTitle}>Completed Challenges</Text>
@@ -83,14 +96,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    padding: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    backgroundColor: "#fff",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
   },
-  welcomeText: {
-    fontSize: 24,
+  menuIcon: {
+    width: 24,
+    height: 24,
+    tintColor: "#000",
+  },
+  headerTitle: {
+    fontSize: 18,
     fontWeight: "bold",
+    color: "#000",
   },
   settingsIcon: {
     width: 24,
