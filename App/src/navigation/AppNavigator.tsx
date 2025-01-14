@@ -1,5 +1,5 @@
 import React from "react";
-import { createStackNavigator } from "@react-navigation/stack";
+import { createStackNavigator, TransitionPresets } from "@react-navigation/stack";
 import BottomTabNavigator from "./BottomTabNavigator";
 import SettingsScreen from "../screens/SettingsScreen";
 import CreateChallengeScreen from "../screens/CreateChallengeScreen";
@@ -18,7 +18,11 @@ const AppNavigator = () => {
       <Stack.Screen
         name="CreateChallengeScreen"
         component={CreateChallengeScreen}
-        options={{ headerShown: true, title: "Create Challenge" }}
+        options={{
+          headerShown: true,
+          title: "Create Challenge",
+          ...TransitionPresets.ModalSlideFromBottomIOS,
+        }}
       />
     </Stack.Navigator>
   );
