@@ -11,6 +11,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
   const [username, setUsername] = useState("Utilisateur");
   const [challenges, setChallenges] = useState<any[]>([]);
   const [selectedDate, setSelectedDate] = useState("Aujourd'hui");
+  const [filter, setFilter] = useState("Tout");
   const calendarHeaderRef = useRef<{ scrollToToday: () => void }>(null);
 
   useEffect(() => {
@@ -68,6 +69,14 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
     }
   };
 
+  const filteredChallenges = challenges.filter((challenge) => {
+    if (filter === "Tout") return true;
+    if (filter === "Matin") return challenge.period === "Matin";
+    if (filter === "Après-midi") return challenge.period === "Après-midi";
+    if (filter === "Soir") return challenge.period === "Soir";
+    return false;
+  });
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -82,10 +91,22 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
         </TouchableOpacity>
       </View>
       <CalendarHeader ref={calendarHeaderRef} onDateChange={setSelectedDate} />
-      <Text style={styles.sectionTitle}>Ongoing Challenges</Text>
-      <FlatList data={challenges.filter((item) => !item.completed)} keyExtractor={(item) => item.id} renderItem={renderChallengeItem} />
-      <Text style={styles.sectionTitle}>Completed Challenges</Text>
-      <FlatList data={challenges.filter((item) => item.completed)} keyExtractor={(item) => item.id} renderItem={renderChallengeItem} />
+      <View style={styles.filterContainer}>
+        {["Tout", "Matin", "Après-midi", "Soir"].map((period) => (
+          <TouchableOpacity
+            key={period}
+            style={[styles.filterButton, filter === period && styles.activeFilterButton]}
+            onPress={() => setFilter(period)}
+          >
+            <Text style={[styles.filterButtonText, filter === period && styles.activeFilterButtonText]}>{period}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+      {filteredChallenges.length > 0 ? (
+        <FlatList data={filteredChallenges} keyExtractor={(item) => item.id} renderItem={renderChallengeItem} />
+      ) : (
+        <Text style={styles.noChallengesText}>Aucun challenge pour le moment</Text>
+      )}
     </SafeAreaView>
   );
 };
@@ -120,11 +141,26 @@ const styles = StyleSheet.create({
     height: 24,
     tintColor: "#000",
   },
-  sectionTitle: {
-    fontSize: 20,
+  filterContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginVertical: 10,
+  },
+  filterButton: {
+    paddingVertical: 5,
+    paddingHorizontal: 15,
+    borderRadius: 20,
+  },
+  activeFilterButton: {
+    backgroundColor: "#007BFF",
+  },
+  filterButtonText: {
+    fontSize: 14,
+    color: "#333",
+  },
+  activeFilterButtonText: {
+    color: "#fff",
     fontWeight: "bold",
-    marginBottom: 10,
-    paddingHorizontal: 20,
   },
   challengeItem: {
     flexDirection: "row",
@@ -163,6 +199,12 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     tintColor: "#ff0000",
+  },
+  noChallengesText: {
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 16,
+    color: "#666",
   },
 });
 
